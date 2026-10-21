@@ -53,7 +53,7 @@ Exit codes:
 | 2 | Invalid argument |
 | 3 | No IME window for the foreground window |
 | 4 | The active keyboard is not a Chinese input method (e.g. the US keyboard) |
-| 5 | The mode did not change within 500 ms |
+| 5 | The mode did not change within 500 ms, usually because the focused element has no input context (see Limitations) |
 | 6 | Unsupported environment: another Chinese input method is enabled, ASUS Bopomofo is not enabled, or its state can't be read |
 
 ### Hotkeys with PowerToys
@@ -65,6 +65,7 @@ In PowerToys Keyboard Manager, select "Remap a shortcut", add a shortcut and cho
 
 ## Limitations
 
+- Switching needs an input context on the focused element. Text inputs always have one; whether other elements do depends on the program: some keep one even outside text inputs, while in others a button or the body of a web page has none, and switching there fails with exit code 5. Moving the focus to an element without an input context can also make ASUS Bopomofo switch to English by itself, so the mode read then doesn't tell the mode restored on returning to a text input.
 - The mode is tracked per process by ASUS Bopomofo itself, so windows of the same program share one mode.
 - It doesn't work on windows of elevated processes unless the caller is also elevated.
 - It depends on undocumented behavior of ASUS Bopomofo and may break after an update.

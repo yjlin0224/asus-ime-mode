@@ -8,6 +8,7 @@
 - **真正的狀態在 ini**：`%ProgramFiles%\ASUS\AsusIME\zhtw\data\%UserName%\AsusIMEConfig.ini` 的 `[DirectOutputMode]`。key 是程式名稱，`0` 是中、`1` 是英；沒有記錄的程式預設是中。不管是按 Shift 還是外部觸發的切換，都會在數百 ms 內寫入。
 - **open status 一改變就翻轉中英**（`IMC_SETOPENSTATUS`）。寫入的值不代表中或英，寫入跟目前相同的值則不會觸發。
 - 華碩注音的 TSF CLSID 是 `{D9012138-88BF-46F4-B599-E69D8BA2FED6}`。DLL 裡有 `KEYBOARD_OPENCLOSE` compartment，但沒有 `INPUTMODE_CONVERSION`。
+- **焦點所在的控制項要有 input context 才能切換。** 輸入框一定有；其他控制項看程式，一般 Win32 視窗預設會帶 context，所以使用者實測過焦點不在輸入框也常常能成功。沒有 context 的控制項（例如 WinForms 的按鈕、部分網頁本文）收不到 open status，翻轉沒有作用，只能以 exit code 5 結束。外部程式無法查詢別的程式有沒有 context，所以「500 ms 內 ini 沒變」是唯一的判斷依據。焦點移到沒有 context 的控制項時，open status 若從 1 變成 0，華碩注音會自行翻轉成英文並寫進 ini，回到輸入框再翻轉回來；它恢復時用的是記憶體裡的狀態，**直接改 ini 會被覆蓋**（實測過）。使用者只在輸入時才切換，所以不做等待焦點的功能。
 - 工作列輸入指示器的 UIA 名稱也會反映真正的狀態，例如「系統匣輸入指示器 注音/英文混合模式」／「英文模式」。指示器的文字語言會跟著目標程式的介面語言改變。
 - 有很多現成工具（im-select、im-select-mspy、im-control、InputTip、AutoHotkey IME.ahk）。它們靠的是 conversion mode、模擬按鍵或 TSF compartment 注入，對華碩注音不是無效就是不可靠。
 

@@ -14,6 +14,13 @@
 // status flips the mode. So we read the ini and flip the open status when the
 // mode differs from the requested one.
 //
+// Switching needs an input context on the focused control. Text inputs always
+// have one; other controls may or may not, depending on the program. A control
+// without one gets no open status, so nothing can be switched, and moving the
+// focus there changes the open status and thereby flips the mode: the state
+// read then says nothing about the mode the IME restores on returning to an
+// input.
+//
 // All Chinese IMEs share the same keyboard layout language, so the active one
 // can't be told apart from outside its process. We refuse to run when any
 // other Chinese IME is enabled.
@@ -146,7 +153,10 @@ func main() {
 		fmt.Println("en")
 	}
 	if zh != want {
-		fail(exitSwitchFailed, errors.New("mode did not change"))
+		// There is no way to check for an input context from outside the
+		// process, so this is the only sign of a focused control without one.
+		// Moving the focus to a text input is the fix the user can make.
+		fail(exitSwitchFailed, errors.New("mode did not change; is the focus in a text input?"))
 	}
 }
 
