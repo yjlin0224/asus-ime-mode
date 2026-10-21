@@ -1,0 +1,80 @@
+# Release builds: one zip per architecture, each holding both programs. Keep the ldflags in sync
+# with Taskfile.yaml's build tasks.
+version: 2
+
+project_name: asus-ime-mode
+
+builds:
+  - id: console
+    binary: asusimemode
+    env: [CGO_ENABLED=0]
+    goos: [windows]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags: [-s -w]
+
+  # GUI subsystem build for hotkeys: no console window to steal focus from the target window
+  - id: gui
+    binary: asusimemodew
+    env: [CGO_ENABLED=0]
+    goos: [windows]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags: [-s -w -H=windowsgui]
+
+archives:
+  - ids: [console, gui]
+    formats: [zip]
+    name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+    files:
+      - LICENSE
+      - README.md
+      - README.en.md
+
+checksum:
+  name_template: checksums.txt
+
+# Only the changes users notice. docs, style, refactor, test, build, ci and chore commits are left
+# out unless they are marked breaking with "!".
+changelog:
+  sort: asc
+  abbrev: 7
+  filters:
+    include:
+      - '^.*?(feat|fix|perf|revert)!?:.+$'
+      - '^.*?[[:word:]]+!:.+$'
+  groups:
+    - title: 不相容變更
+      regexp: '^.*?[[:word:]]+!:.+$'
+      order: 0
+    - title: 新功能
+      regexp: '^.*?feat:.+$'
+      order: 1
+    - title: 修正
+      regexp: '^.*?fix:.+$'
+      order: 2
+    - title: 效能
+      regexp: '^.*?perf:.+$'
+      order: 3
+    - title: 還原
+      regexp: '^.*?revert:.+$'
+      order: 4
+
+# The README links point at this tag, so they describe this release rather than main.
+release:
+  header: |
+    ## 檔案
+
+    | 檔案 | 內容 |
+    | ---- | ---- |
+    | `{{ .ProjectName }}_{{ .Version }}_windows_amd64.zip` | x64（AMD64）版 |
+    | `{{ .ProjectName }}_{{ .Version }}_windows_arm64.zip` | ARM64 版 |
+    | `checksums.txt` | 各 zip 的 SHA-256 |
+
+    每個 zip 包含：
+
+    - `asusimemode.exe`：主控台版
+    - `asusimemodew.exe`：GUI 版，不開主控台視窗
+    - `LICENSE`、`README.md`、`README.en.md`
+
+    需求、安裝與使用方式見 [README]({{ trimsuffix .GitURL ".git" }}/blob/{{ .Tag }}/README.md)（[English]({{ trimsuffix .GitURL ".git" }}/blob/{{ .Tag }}/README.en.md)）。

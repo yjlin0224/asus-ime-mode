@@ -1,0 +1,18 @@
+{
+  "name": "asus-ime-mode",
+  "description": "Get or force the Chinese/English mode of ASUS Bopomofo",
+  "private": true,
+  "license": "MIT",
+  "packageManager": "pnpm@12.8.2",
+  "scripts": {
+    "prepare": "husky",
+    "spell": "cspell lint --words-only --unique --dot --gitignore \"**/*.{go,md,yaml,json}\""
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
+    "@goreleaser/goreleaser": "2.18.3",
+    "cspell": "^10.4.0",
+    "husky": "^9.1.7"
+  }
+}

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+STAGED_FILES=$(git diff --staged --name-only --diff-filter=ACMR)
+
+if ! OUTPUT=$(pnpm run spell 2>&1); then
+    echo "cspell error occurred"
+    echo "$OUTPUT"
+    exit 1
+fi
+
+# golangci-lint also checks the formatting and runs go vet.
+if echo "$STAGED_FILES" | grep -q "\(\.go\|^go\.mod\|^go\.sum\|^\.golangci\.yaml\)$"; then
+    if ! OUTPUT=$(golangci-lint run 2>&1); then
+        echo "golangci-lint error occurred"
+        echo "$OUTPUT"
+        exit 1
+    fi
+fi

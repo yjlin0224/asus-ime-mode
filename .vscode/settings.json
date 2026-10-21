@@ -1,0 +1,10 @@
+{
+  "editor.formatOnSave": true,
+  "go.alternateTools": {
+    "customFormatter": "golangci-lint"
+  },
+  "go.formatFlags": ["fmt", "--stdin"],
+  "go.formatTool": "custom",
+  "go.lintFlags": ["--path-mode=abs", "--fast-only", "--fix"],
+  "go.lintTool": "golangci-lint"
+}

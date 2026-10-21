@@ -1,0 +1,41 @@
+version: 0.2
+language: en
+ignorePaths:
+  - go.sum
+  - pnpm-lock.yaml
+words:
+  - asus
+  - asusime
+  - asusimemode
+  - asusimemodew
+  - bopomofo
+  - clsid
+  - commitlint
+  - commitlintrc
+  - conv
+  - errcheck
+  - gitflow
+  - goarch
+  - gofmt
+  - gofumpt
+  - golangci
+  - golines
+  - goreleaser
+  - gpgsign
+  - hkl
+  - hwnd
+  - ldflags
+  - localappdata
+  - localmodule
+  - mspy
+  - noinlineerr
+  - openclose
+  - setconversionmode
+  - setopenstatus
+  - syscall
+  - taskfile
+  - trimpath
+  - trimsuffix
+  - userprofile
+  - windowsgui
+  - zhtw

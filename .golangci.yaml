@@ -1,0 +1,29 @@
+version: '2'
+linters:
+  default: standard
+  enable:
+    - modernize
+    - noinlineerr
+  settings:
+    errcheck:
+      exclude-functions:
+        - (io.Closer).Close
+        - (*os.File).Close
+        - (golang.org/x/sys/windows/registry.Key).Close
+        # The returned error is GetLastError, which is set even on success
+        - (*syscall.LazyProc).Call
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - golines
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - blank
+        - dot
+        - alias
+        - localmodule

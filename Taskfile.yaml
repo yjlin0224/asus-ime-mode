@@ -1,0 +1,95 @@
+# Builds go to BIN_DIR (default ~/.local/bin, which is on PATH); override with e.g.
+# `task build BIN_DIR=C:/tools`. Builds are skipped when the sources haven't changed.
+# Keep the ldflags in sync with .goreleaser.yaml.
+version: '3'
+
+vars:
+  NAME: asusimemode
+  BIN_DIR: '{{toSlash .USERPROFILE}}/.local/bin'
+
+tasks:
+  default:
+    desc: List the tasks
+    silent: true
+    cmds:
+      - task --list
+
+  fmt:
+    desc: Format the code with golangci-lint (.golangci.yaml)
+    cmds:
+      - golangci-lint fmt
+
+  lint:
+    desc: Run the linters in .golangci.yaml
+    cmds:
+      - golangci-lint run
+
+  lint:fix:
+    desc: Run the linters and apply their fixes
+    cmds:
+      - golangci-lint run --fix
+
+  build:
+    desc: Build both the console and the GUI program
+    deps: [build:console, build:gui]
+
+  build:console:
+    desc: Build {{.NAME}}.exe, the console program for shells and scripts
+    sources: &sources ['*.go', go.mod, go.sum]
+    generates: ['{{.BIN_DIR}}/{{.NAME}}.exe']
+    cmds:
+      - go build -ldflags "-s -w" -o "{{.BIN_DIR}}/{{.NAME}}.exe"
+
+  build:gui:
+    desc:
+      Build {{.NAME}}w.exe, the GUI program for hotkeys (no console window to steal focus from the
+      target window)
+    sources: *sources
+    generates: ['{{.BIN_DIR}}/{{.NAME}}w.exe']
+    cmds:
+      - go build -ldflags "-s -w -H=windowsgui" -o "{{.BIN_DIR}}/{{.NAME}}w.exe"
+
+  spell:
+    desc: Check spelling with cspell (also run by the pre-commit hook)
+    cmds:
+      - pnpm run spell
+
+  # GoReleaser comes from package.json (pnpm install), pinned to the version CI uses
+  release:check:
+    desc: Validate .goreleaser.yaml
+    cmds:
+      - pnpm exec goreleaser check
+
+  release:snapshot:
+    desc:
+      Build the release zips into dist/ without publishing, to check them before pushing a tag
+    cmds:
+      - pnpm exec goreleaser release --snapshot --clean
+
+  # GitHub Flow has no release branch: a release is a signed tag on main, and pushing it runs
+  # .github/workflows/release.yaml.
+  release:
+    desc:
+      Check main, then tag it as vVERSION (signed) and push the tag to publish a GitHub release,
+      e.g. task release VERSION=0.1.0
+    requires:
+      vars: [VERSION]
+    preconditions:
+      - sh: '[[ "{{.VERSION}}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]'
+        msg: VERSION must be X.Y.Z without a leading v, e.g. VERSION=0.1.0
+      - sh: '[ "$(git branch --show-current)" = main ]'
+        msg: Releases are tagged on main; switch to main first
+      - sh: '[ -z "$(git status --porcelain)" ]'
+        msg: The working tree has uncommitted or untracked changes
+      - sh: git fetch --quiet origin main && [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ]
+        msg: main differs from origin/main; pull or push first
+      - sh: '! git rev-parse --quiet --verify "refs/tags/v{{.VERSION}}" >/dev/null'
+        msg: Tag v{{.VERSION}} already exists locally
+      - sh: '! git ls-remote --exit-code --tags origin "refs/tags/v{{.VERSION}}" >/dev/null'
+        msg: Tag v{{.VERSION}} already exists on origin
+    cmds:
+      - task: lint
+      - task: spell
+      - task: release:snapshot
+      - git tag --sign "v{{.VERSION}}" --message "v{{.VERSION}}"
+      - git push origin "v{{.VERSION}}"
