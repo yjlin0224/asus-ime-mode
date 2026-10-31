@@ -1,11 +1,11 @@
-# Builds go to BIN_DIR (default ~/.local/bin, which is on PATH); override with e.g.
-# `task build BIN_DIR=C:/tools`. Builds are skipped when the sources haven't changed.
-# Keep the ldflags in sync with .goreleaser.yaml.
+# Builds go to bin/ in the repository (ignored by git) and install nothing: putting a build where
+# it runs is left to each developer, e.g. a git-ignored *.local.ps1 script. Builds are skipped when
+# the sources haven't changed. Keep the ldflags in sync with .goreleaser.yaml.
 version: '3'
 
 vars:
   NAME: asusimemode
-  BIN_DIR: '{{toSlash .USERPROFILE}}/.local/bin'
+  BIN_DIR: bin
 
 tasks:
   default:

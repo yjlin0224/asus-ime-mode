@@ -81,7 +81,7 @@ Requirements:
 - [golangci-lint](https://golangci-lint.run) v2: `task fmt` to format, `task lint` to lint
 - Node.js and pnpm: run `pnpm install` once to install cspell, [husky](https://typicode.github.io/husky/), commitlint and GoReleaser. The pre-commit hook checks spelling and, when Go files are staged, runs `golangci-lint run`; the commit-msg hook checks with commitlint that the commit message follows [Conventional Commits](https://www.conventionalcommits.org/) (Angular types; rules in `.commitlintrc.yaml`)
 
-`task build` builds the program into `%UserProfile%\.local\bin` (override with `task build BIN_DIR=<dir>`). Builds are skipped when the sources haven't changed; add `--force` to rebuild anyway.
+`task build` builds the program into `bin/` in the repository (ignored by git) and installs nothing; to copy it to where your machine runs it, write a `*.local.ps1` script, which git ignores as well. Builds are skipped when the sources haven't changed; add `--force` to rebuild anyway.
 
 The manifest is `winres/asusimemode.manifest`. Go's linker can't embed a manifest itself, so it is compiled into `rsrc_windows_amd64.syso` and `rsrc_windows_arm64.syso`, which are committed: `go build`, `go install` and GoReleaser link them in automatically, and building needs no other tool. After changing the manifest, run `task winres` to regenerate the `.syso` files; that step needs the C++ workload of Visual Studio Build Tools (it uses `rc.exe` and `cvtres.exe`). `task winres:check` checks that the committed `.syso` files match the manifest, and the pre-commit hook runs it when `winres/` or a `.syso` file is staged.
 
