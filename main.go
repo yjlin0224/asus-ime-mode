@@ -25,9 +25,10 @@
 // can't be told apart from outside its process. We refuse to run when any
 // other Chinese IME is enabled.
 //
-// `task build` builds asusimemode.exe for shells and asusimemodew.exe (GUI
-// subsystem) for hotkeys, so launching it from a hotkey doesn't open a console
-// that steals focus.
+// One program serves shells and hotkeys: its manifest (winres/, linked in from
+// rsrc_windows_*.syso) sets consoleAllocationPolicy to detached, so a hotkey
+// launch opens no console that would steal focus from the target window, while
+// a shell still waits for it and gets its output and exit code.
 package main
 
 import (

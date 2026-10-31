@@ -16,7 +16,8 @@
 
 - `main.go`：全部的程式。`isChineseMode` 讀 ini，`checkOnlyAsusChineseIme` 確認登錄檔中啟用的中文輸入法都是華碩注音。
 - 所有指令都透過 `task`（`task --list`）執行；`package.json` 只放 Node 工具（`prepare`、`spell`）。
-  - `task build`：輸出到 `~/.local/bin`，產生 `asusimemode.exe`（主控台版）和 `asusimemodew.exe`（GUI 版，`-H=windowsgui`，給快速鍵用）。
+  - `task build`：輸出到 `~/.local/bin`，產生單一的 `asusimemode.exe`，終端機和快速鍵共用。
+  - `task winres`：用 `winres/build.ps1` 把 `winres/asusimemode.manifest` 編成 `rsrc_windows_{amd64,arm64}.syso`；`task winres:check` 檢查 commit 的 `.syso` 是否一致（pre-commit 在暫存了 `winres/` 或 `.syso` 時會跑）。需要 Build Tools 的 C++ 工作負載。
   - `task fmt`、`task lint`：golangci-lint，設定在 `.golangci.yaml`。
   - `task spell`：cspell。新的專有名詞加進 `cspell.config.yaml`。
   - `task release:snapshot`：GoReleaser 只產生 `dist/`，不發布。
@@ -26,6 +27,18 @@
   - GoReleaser 的版本在 `package.json`（精確版本）和 `.github/workflows/release.yaml` 各一份。
   - golangci-lint 的版本：`release.yaml` 固定成跟本機相同的版本（目前 v2.15.0）。
   - `README.md`（繁中，主要）和 `README.en.md` 內容要一致。
+  - 改了 `winres/asusimemode.manifest` 就要 `task winres`，並一起 commit 兩個 `.syso`。
+
+## 單一執行檔與 manifest
+
+- 以前分成主控台版和 `-H=windowsgui` 的 `asusimemodew.exe`（v0.1.0），因為從快速鍵啟動主控台程式會開出視窗搶走焦點，切換到的就變成主控台。現在只有一個主控台程式，manifest 設了 `consoleAllocationPolicy = detached`：沒有繼承到主控台時（快速鍵、檔案總管）不配置主控台；從終端機執行時終端機會等它，輸出和結束代碼都正常。需要 Windows 11 24H2（build 26100）以上，舊版從快速鍵啟動仍會開出視窗，README 已寫明不適合在舊版從快速鍵使用。
+- `detached` 也會壓過 `CREATE_NEW_CONSOLE`：雙擊、或 `Start-Process` 沒加 `-NoNewWindow` 時不開視窗、看不到輸出。
+- manifest 另外設了 `asInvoker`（以呼叫者的權限執行）。
+- **`.syso` 的產生方式（`winres/build.ps1`）**：Go 的連結器不支援 manifest，所以用 Build Tools 內的 `rc.exe`（.rc → .res）和 `cvtres.exe`（.res → 各架構的 COFF）產生，不依賴外部的 Go 工具（`go run github.com/akavel/rsrc` 會從網路執行外部程式碼）。cvtres 的輸出要後處理三件事，缺一不可：
+  - COFF 標頭的時間戳記清成 0。
+  - `.debug$S` 區段清成 0：裡面有暫存 .res、輸出檔、工作目錄和 cvtres 的**絕對路徑**（含使用者名稱），不清會讓每次輸出不同，還會把本機路徑 commit 出去。Go 只使用 `.rsrc$01`、`.rsrc$02`。
+  - `@comp.id` 符號的區段編號從 −1（絕對）改成 −2（除錯）：Go 的 `cmd/link/internal/loadpe` 只略過 `@feat.00` 這個絕對符號，遇到 `@comp.id` 會以 `sectnum < 0!` 連結失敗。
+  - 處理後同一份 manifest 每次都產生相同的位元組，`winres:check` 才有意義。
 
 ## commit message
 
@@ -78,4 +91,4 @@ GoReleaser 的 changelog 只列 `feat`、`fix`、`perf`、`revert`，以及標�
 - **測試只能在自己開的視窗裡進行。** 用 WinForms 開一個有 TextBox 的視窗，用 `AttachThreadInput` 加 `SetForegroundWindow` 取得焦點（背景程式直接呼叫 `SetForegroundWindow` 會被前景鎖擋下）。
 - **每個會送按鍵或執行切換的動作之前，都要檢查前景視窗還是不是測試視窗**，不是就中止。使用者常在測試途中切換視窗：曾經有 Shift 送進了使用者的 Discord，也有一次切換作用到了使用者正在用的視窗。
 - 模擬 Shift 切換時，按下和放開之間要隔約 60 ms，太短會被華碩注音忽略。
-- `asusimemodew.exe` 是 GUI 程式，從 PowerShell 用 `&` 執行時拿不到輸出和結束代碼，要用 `Start-Process -PassThru` 等它結束。
+- 從 PowerShell 用 `&` 執行即可拿到輸出和結束代碼；不要用沒加 `-NoNewWindow` 的 `Start-Process`，那樣不會開視窗、看不到輸出（manifest 的 `detached`）。

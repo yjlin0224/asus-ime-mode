@@ -18,19 +18,19 @@ All Chinese input methods share the same keyboard layout language, so the active
 ## Requirements
 
 - Windows 10 or later with ASUS Bopomofo as the only enabled Chinese input method
+- Hotkey use needs Windows 11 24H2 (build 26100) or later. On older Windows a hotkey launch opens a console window that takes the focus, so the console window gets switched instead (see Limitations). Shells and scripts work on any version.
 
 ## Installation
 
 Download the zip for your architecture from GitHub Releases: `windows_amd64` for most PCs, `windows_arm64` for ARM laptops (e.g. Snapdragon). If unsure, run `$env:PROCESSOR_ARCHITECTURE` in PowerShell: it prints `AMD64` or `ARM64`.
 
-Extract the zip to `%LOCALAPPDATA%\Programs\asus-ime-mode`, the usual location for per-user programs on Windows, which needs no administrator rights. The zip holds two programs:
+Extract the zip to `%LOCALAPPDATA%\Programs\asus-ime-mode`, the usual location for per-user programs on Windows, which needs no administrator rights. The zip holds a single program, `asusimemode.exe`, for shells, scripts and hotkeys alike. Its manifest sets [`consoleAllocationPolicy`](https://learn.microsoft.com/windows/console/console-allocation-policy), so a hotkey launch opens no console window and the focus stays on the window to switch, while a shell runs it like any command-line program, with its output and exit code.
 
-- `asusimemode.exe`: console build, for shells and scripts.
-- `asusimemodew.exe`: GUI build, for hotkeys. A console build launched from a hotkey would open a console window, which takes focus away from the target window, so the console window would be switched instead.
-
-To run `asusimemode` by name in a terminal, add the folder to your user PATH environment variable. If you already have `%UserProfile%\.local\bin` on PATH (e.g. from installing uv or Claude Code), you can put the programs there instead.
+To run `asusimemode` by name in a terminal, add the folder to your user PATH environment variable. If you already have `%UserProfile%\.local\bin` on PATH (e.g. from installing uv or Claude Code), you can put the program there instead.
 
 To update, extract the new version to the same folder, overwriting the old files. Hotkeys store the full path, so they keep working as long as the location stays the same.
+
+Updating from v0.1.0: v0.1.0 also shipped `asusimemodew.exe` for hotkeys, which later versions no longer include. Point your hotkeys at `asusimemode.exe`, then delete the old `asusimemodew.exe`.
 
 ## Usage
 
@@ -60,7 +60,7 @@ Exit codes:
 
 In PowerToys Keyboard Manager, select "Remap a shortcut", add a shortcut and choose the "Run program" action:
 
-- App: `%LOCALAPPDATA%\Programs\asus-ime-mode\asusimemodew.exe`
+- App: `%LOCALAPPDATA%\Programs\asus-ime-mode\asusimemode.exe`
 - Args: `zh` or `en`
 
 ## Limitations
@@ -69,6 +69,8 @@ In PowerToys Keyboard Manager, select "Remap a shortcut", add a shortcut and cho
 - The mode is tracked per process by ASUS Bopomofo itself, so windows of the same program share one mode.
 - It doesn't work on windows of elevated processes unless the caller is also elevated.
 - It depends on undocumented behavior of ASUS Bopomofo and may break after an update.
+- Windows before 11 24H2 doesn't know `consoleAllocationPolicy`, so a hotkey launch still opens a console window and the console gets switched instead of the original window. Don't use it from hotkeys there.
+- Double-clicking `asusimemode.exe`, or starting it with PowerShell's `Start-Process` without `-NoNewWindow`, opens no window either, so its output isn't visible.
 
 ## Development
 
@@ -79,7 +81,9 @@ Requirements:
 - [golangci-lint](https://golangci-lint.run) v2: `task fmt` to format, `task lint` to lint
 - Node.js and pnpm: run `pnpm install` once to install cspell, [husky](https://typicode.github.io/husky/), commitlint and GoReleaser. The pre-commit hook checks spelling and, when Go files are staged, runs `golangci-lint run`; the commit-msg hook checks with commitlint that the commit message follows [Conventional Commits](https://www.conventionalcommits.org/) (Angular types; rules in `.commitlintrc.yaml`)
 
-`task build` builds both programs into `%UserProfile%\.local\bin` (override with `task build BIN_DIR=<dir>`); `task build:console` and `task build:gui` build one of them. Builds are skipped when the sources haven't changed; add `--force` to rebuild anyway.
+`task build` builds the program into `%UserProfile%\.local\bin` (override with `task build BIN_DIR=<dir>`). Builds are skipped when the sources haven't changed; add `--force` to rebuild anyway.
+
+The manifest is `winres/asusimemode.manifest`. Go's linker can't embed a manifest itself, so it is compiled into `rsrc_windows_amd64.syso` and `rsrc_windows_arm64.syso`, which are committed: `go build`, `go install` and GoReleaser link them in automatically, and building needs no other tool. After changing the manifest, run `task winres` to regenerate the `.syso` files; that step needs the C++ workload of Visual Studio Build Tools (it uses `rc.exe` and `cvtres.exe`). `task winres:check` checks that the committed `.syso` files match the manifest, and the pre-commit hook runs it when `winres/` or a `.syso` file is staged.
 
 ### Releasing
 

@@ -4,6 +4,7 @@ ignorePaths:
   - go.sum
   - pnpm-lock.yaml
 words:
+  - akavel
   - asus
   - asusime
   - asusimemode
@@ -13,6 +14,7 @@ words:
   - commitlint
   - commitlintrc
   - conv
+  - cvtres
   - errcheck
   - gitflow
   - goarch
@@ -25,17 +27,22 @@ words:
   - hkl
   - hwnd
   - ldflags
+  - loadpe
   - localappdata
   - localmodule
   - mspy
   - noinlineerr
   - openclose
+  - rsrc
+  - sectnum
   - setconversionmode
   - setopenstatus
   - syscall
+  - syso
   - taskfile
   - trimpath
   - trimsuffix
   - userprofile
   - windowsgui
+  - winres
   - zhtw

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Linked into asusimemode.exe through rsrc_windows_*.syso; regenerate them after any change
+     with `task winres` (winres/build.ps1). -->
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+  <assemblyIdentity version="1.0.0.0" name="asusimemode" />
+
+  <!-- Runs with the caller's rights. It changes the IME of elevated windows only when started
+       elevated itself (README, Limitations). -->
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
+    <security>
+      <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
+        <requestedExecutionLevel level="asInvoker" uiAccess="false" />
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <!-- Windows 10 and Windows 11 -->
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
+    </application>
+  </compatibility>
+
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <!-- A console program that gets no console window when nothing gave it one. Started from a
+           hotkey it opens no window, so focus stays on the window whose IME it switches; started
+           from a shell it is a normal CLI (the shell waits, and output and the exit code work).
+           Windows 11 24H2 (build 26100) and later; older Windows ignore it and open a console
+           window, which takes the focus. -->
+      <consoleAllocationPolicy xmlns="http://schemas.microsoft.com/SMI/2024/WindowsSettings">detached</consoleAllocationPolicy>
+    </windowsSettings>
+  </application>
+</assembly>
