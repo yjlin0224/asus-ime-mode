@@ -16,7 +16,7 @@
 
 - `main.go`：全部的程式。`isChineseMode` 讀 ini，`checkOnlyAsusChineseIme` 確認登錄檔中啟用的中文輸入法都是華碩注音。
 - 所有指令都透過 `task`（`task --list`）執行；`package.json` 只放 Node 工具（`prepare`、`spell`）。
-  - `task build`：輸出到 `~/.local/bin`，產生單一的 `asusimemode.exe`，終端機和快速鍵共用。
+  - `task build`：輸出到 repo 裡的 `bin/asusimemode.exe`（git 忽略），**只建置、不安裝**。建置和安裝刻意分開：使用者本機的安裝是 git 忽略的個人腳本 `install.local.ps1`（`task build` 後複製到 `%LOCALAPPDATA%\Programs\asus-ime-mode`，PowerToys 快速鍵指向那裡），不要再讓 `task build` 輸出到安裝位置。
   - `task winres`：用 `winres/build.ps1` 把 `winres/asusimemode.manifest` 編成 `rsrc_windows_{amd64,arm64}.syso`；`task winres:check` 檢查 commit 的 `.syso` 是否一致（pre-commit 在暫存了 `winres/` 或 `.syso` 時會跑）。需要 Build Tools 的 C++ 工作負載。
   - `task fmt`、`task lint`：golangci-lint，設定在 `.golangci.yaml`。
   - `task spell`：cspell。新的專有名詞加進 `cspell.config.yaml`。

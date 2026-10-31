@@ -83,3 +83,9 @@ node_modules/
 
 # GoReleaser output
 dist/
+
+# task build output
+bin/
+
+# Personal scripts, e.g. install.local.ps1 copying a build to where this machine runs it
+*.local.ps1

@@ -81,7 +81,7 @@ asusimemode [zh|en|toggle]
 - [golangci-lint](https://golangci-lint.run) v2：`task fmt` 格式化、`task lint` 檢查
 - Node.js 與 pnpm：先執行一次 `pnpm install`，安裝 cspell、[husky](https://typicode.github.io/husky/)、commitlint 與 GoReleaser。pre-commit hook 會檢查拼字，暫存了 Go 相關檔案時再執行 `golangci-lint run`；commit-msg hook 會用 commitlint 檢查 commit message 是否符合 [Conventional Commits](https://www.conventionalcommits.org/zh-hant/)（type 採 Angular convention，規則見 `.commitlintrc.yaml`）
 
-`task build` 會把程式編譯到 `%UserProfile%\.local\bin`，可用 `task build BIN_DIR=<資料夾>` 改變位置。原始碼沒有變更時會略過編譯，加上 `--force` 強制重新編譯。
+`task build` 會把程式編譯到 repo 裡的 `bin/`（已列在 `.gitignore`），不會安裝到任何地方；要放到自己電腦上執行的位置，可以寫一支 `*.local.ps1` 腳本（同樣被 git 忽略）來複製。原始碼沒有變更時會略過編譯，加上 `--force` 強制重新編譯。
 
 manifest 在 `winres/asusimemode.manifest`。Go 的連結器不能直接嵌入 manifest，所以它被編譯成 `rsrc_windows_amd64.syso`、`rsrc_windows_arm64.syso` 並 commit 進來，`go build`、`go install` 和 GoReleaser 會自動連結，編譯時不需要其他工具。修改 manifest 後要執行 `task winres` 重新產生 `.syso`，這一步需要 Visual Studio Build Tools 的 C++ 工作負載（用其中的 `rc.exe` 和 `cvtres.exe`）；`task winres:check` 檢查 commit 的 `.syso` 是否跟 manifest 一致，pre-commit hook 在暫存了 `winres/` 或 `.syso` 時會執行它。
 
