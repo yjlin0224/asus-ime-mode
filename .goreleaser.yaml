@@ -1,11 +1,12 @@
-# Release builds: one zip per architecture, each holding both programs. Keep the ldflags in sync
-# with Taskfile.yaml's build tasks.
+# Release builds: one zip per architecture. Keep the ldflags in sync with Taskfile.yaml's build
+# task. The application manifest (no console window when started from a hotkey) comes from the
+# committed rsrc_windows_{amd64,arm64}.syso, which go build links in by itself.
 version: 2
 
 project_name: asus-ime-mode
 
 builds:
-  - id: console
+  - id: asusimemode
     binary: asusimemode
     env: [CGO_ENABLED=0]
     goos: [windows]
@@ -13,17 +14,8 @@ builds:
     flags: [-trimpath]
     ldflags: [-s -w]
 
-  # GUI subsystem build for hotkeys: no console window to steal focus from the target window
-  - id: gui
-    binary: asusimemodew
-    env: [CGO_ENABLED=0]
-    goos: [windows]
-    goarch: [amd64, arm64]
-    flags: [-trimpath]
-    ldflags: [-s -w -H=windowsgui]
-
 archives:
-  - ids: [console, gui]
+  - ids: [asusimemode]
     formats: [zip]
     name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
     files:
@@ -73,8 +65,7 @@ release:
 
     每個 zip 包含：
 
-    - `asusimemode.exe`：主控台版
-    - `asusimemodew.exe`：GUI 版，不開主控台視窗
+    - `asusimemode.exe`：終端機和快速鍵共用的單一程式
     - `LICENSE`、`README.md`、`README.en.md`
 
     需求、安裝與使用方式見 [README]({{ trimsuffix .GitURL ".git" }}/blob/{{ .Tag }}/README.md)（[English]({{ trimsuffix .GitURL ".git" }}/blob/{{ .Tag }}/README.en.md)）。

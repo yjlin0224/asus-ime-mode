@@ -1,0 +1,3 @@
+// The application manifest as resource 1 of type 24 (RT_MANIFEST), the resource Windows reads
+// when it starts the program. Compiled by winres/build.ps1.
+1 24 "asusimemode.manifest"

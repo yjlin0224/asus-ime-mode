@@ -30,24 +30,24 @@ tasks:
       - golangci-lint run --fix
 
   build:
-    desc: Build both the console and the GUI program
-    deps: [build:console, build:gui]
-
-  build:console:
-    desc: Build {{.NAME}}.exe, the console program for shells and scripts
-    sources: &sources ['*.go', go.mod, go.sum]
+    desc: Build {{.NAME}}.exe, for shells, scripts and hotkeys alike
+    sources: ['*.go', '*.syso', go.mod, go.sum]
     generates: ['{{.BIN_DIR}}/{{.NAME}}.exe']
     cmds:
       - go build -ldflags "-s -w" -o "{{.BIN_DIR}}/{{.NAME}}.exe"
 
-  build:gui:
-    desc:
-      Build {{.NAME}}w.exe, the GUI program for hotkeys (no console window to steal focus from the
-      target window)
-    sources: *sources
-    generates: ['{{.BIN_DIR}}/{{.NAME}}w.exe']
+  # The .syso files carry winres/asusimemode.manifest (consoleAllocationPolicy) and are committed,
+  # so only a manifest change needs this. Needs the Visual Studio Build Tools C++ workload.
+  winres:
+    desc: Regenerate rsrc_windows_{amd64,arm64}.syso from winres/asusimemode.manifest
     cmds:
-      - go build -ldflags "-s -w -H=windowsgui" -o "{{.BIN_DIR}}/{{.NAME}}w.exe"
+      - pwsh -NoProfile -File winres/build.ps1
+
+  winres:check:
+    desc: Check that the committed .syso files match winres/asusimemode.manifest
+    cmds:
+      - task: winres
+      - git diff --exit-code -- rsrc_windows_amd64.syso rsrc_windows_arm64.syso
 
   spell:
     desc: Check spelling with cspell (also run by the pre-commit hook)

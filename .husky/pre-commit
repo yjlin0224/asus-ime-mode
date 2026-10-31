@@ -16,3 +16,12 @@ if echo "$STAGED_FILES" | grep -q "\(\.go\|^go\.mod\|^go\.sum\|^\.golangci\.yaml
         exit 1
     fi
 fi
+
+# The committed .syso files must be what winres/ generates (needs the Build Tools C++ workload).
+if echo "$STAGED_FILES" | grep -q "\(^winres/\|\.syso$\)"; then
+    if ! OUTPUT=$(task winres:check 2>&1); then
+        echo "winres error occurred: run task winres and stage the .syso files"
+        echo "$OUTPUT"
+        exit 1
+    fi
+fi

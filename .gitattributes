@@ -1,3 +1,7 @@
 # LF everywhere, regardless of the machine's core.autocrlf. Binary files are detected by content,
 # so they're left alone.
 * text=auto eol=lf
+
+# COFF objects generated from winres/asusimemode.manifest (task winres): never diffed or merged
+# as text
+*.syso binary
